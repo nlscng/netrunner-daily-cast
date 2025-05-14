@@ -1,47 +1,26 @@
 
-const cards = [
-    {
-        name: "Card 1",
-        description: "Description for Card 1",
-        image: "https://via.placeholder.com/200",
-        deckLink: "https://example.com/deck1"
-    },
-    {
-        name: "Card 2",
-        description: "Description for Card 2",
-        image: "https://via.placeholder.com/200",
-        deckLink: "https://example.com/deck2"
-    },
-    {
-        name: "Card 3",
-        description: "Description for Card 3",
-        image: "https://via.placeholder.com/200",
-        deckLink: "https://example.com/deck3"
-    }
-];
+async function fetchRandomCard() {
+  const response = await fetch("https://netrunnerdb.com/api/2.0/public/cards");
+  const data = await response.json();
+  const cards = data.data;
+  const card = cards[Math.floor(Math.random() * cards.length)];
 
-let lastRefreshTime = 0;
-
-function showRandomCard() {
-    const now = Date.now();
-    if (now - lastRefreshTime < 10000) {
-        alert("Please wait before refreshing again.");
-        return;
-    }
-    lastRefreshTime = now;
-
-    const card = cards[Math.floor(Math.random() * cards.length)];
-    document.getElementById("card-image").src = card.image;
-    document.getElementById("card-name").textContent = card.name;
-    document.getElementById("card-description").textContent = card.description;
-    document.getElementById("deck-link").href = card.deckLink;
+  document.getElementById("card-image").src = "https://netrunnerdb.com" + card.imagesrc;
+  document.getElementById("card-name").textContent = card.title;
+  document.getElementById("card-description").innerHTML = card.text || "No description available.";
+  document.getElementById("deck-link").href = `https://netrunnerdb.com/en/search?include=${card.title}`;
+  document.getElementById("deck-link").textContent = "Search Decks with This Card";
 }
 
-document.getElementById("refresh-button").addEventListener("click", showRandomCard);
-
-window.addEventListener("load", () => {
-    showRandomCard();
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js');
-    }
+let lastRefresh = 0;
+document.getElementById("refresh-button").addEventListener("click", () => {
+  const now = Date.now();
+  if (now - lastRefresh > 10000) {
+    fetchRandomCard();
+    lastRefresh = now;
+  } else {
+    alert("Please wait 10 seconds before refreshing again.");
+  }
 });
+
+window.addEventListener("load", fetchRandomCard);
